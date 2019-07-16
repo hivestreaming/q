@@ -1,0 +1,9 @@
+pool:
+  vmImage: 'Ubuntu-16.04'
+
+steps:
+- task: Npm@1
+  displayName: 'NPM Publish'
+  inputs:
+    command: publish
+    publishEndpoint: 'npm registry'
