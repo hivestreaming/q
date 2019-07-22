@@ -105,6 +105,12 @@ var nextTick =(function () {
     var flushing = false;
     var requestTick = void 0;
     var isNodeJS = false;
+    try {
+        isIe = navigator && (navigator.appName === 'Microsoft Internet Explorer' || navigator.appVersion.match(/(trident).+rv[:\s]([\w\.]+).+like\sgecko/i) != null);
+    } catch (e) {
+        // navigator was not found. this can happen in our integration tests or anyway whenever the
+        // q library is used in a node app without browser or electron
+    }
     // queue for late tasks, used by unhandled rejection tracking
     var laterQueue = [];
 
@@ -169,19 +175,23 @@ var nextTick =(function () {
     }
 
     nextTick = function (task) {
-        tail = tail.next = {
-            task: task,
-            domain: isNodeJS && process.domain,
-            next: null
-        };
+        if ((typeof Framework != "undefined") && Framework.isSimulated()) {
+            Framework.setTimeout(task, 0);
+        } else {
+            tail = tail.next = {
+                task: task,
+                domain: isNodeJS && process.domain,
+                next: null
+            };
 
-        if (!flushing) {
-            flushing = true;
-            requestTick();
+            if (!flushing) {
+                flushing = true;
+                requestTick();
+            }
         }
     };
 
-    if (typeof process === "object" &&
+    if (typeof process === "object" && process &&
         process.toString() === "[object process]" && process.nextTick) {
         // Ensure Q is in a real Node environment, with a `process.nextTick`.
         // To see through fake Node environments:
@@ -197,8 +207,8 @@ var nextTick =(function () {
             process.nextTick(flush);
         };
 
-    } else if (typeof setImmediate === "function") {
-        // In IE10, Node.js 0.9+, or https://github.com/NobleJS/setImmediate
+    } else if (typeof setImmediate === "function" && !isIe) {
+        // Node.js 0.9+, or https://github.com/NobleJS/setImmediate
         if (typeof window !== "undefined") {
             requestTick = setImmediate.bind(window, flush);
         } else {
@@ -207,7 +217,7 @@ var nextTick =(function () {
             };
         }
 
-    } else if (typeof MessageChannel !== "undefined") {
+    } else if (typeof MessageChannel !== "undefined" && !isIe) {
         // modern browsers
         // http://www.nonblocking.io/2011/06/windownexttick.html
         var channel = new MessageChannel();
@@ -1073,7 +1083,7 @@ function trackRejection(promise, reason) {
     if (!trackUnhandledRejections) {
         return;
     }
-    if (typeof process === "object" && typeof process.emit === "function") {
+    if (typeof process === "object" && process && typeof process.emit === "function") {
         Q.nextTick.runAfter(function () {
             if (array_indexOf(unhandledRejections, promise) !== -1) {
                 process.emit("unhandledRejection", reason, promise);
@@ -1097,7 +1107,7 @@ function untrackRejection(promise) {
 
     var at = array_indexOf(unhandledRejections, promise);
     if (at !== -1) {
-        if (typeof process === "object" && typeof process.emit === "function") {
+        if (typeof process === "object" && process && typeof process.emit === "function") {
             Q.nextTick.runAfter(function () {
                 var atReport = array_indexOf(reportedUnhandledRejections, promise);
                 if (atReport !== -1) {
