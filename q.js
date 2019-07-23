@@ -105,6 +105,7 @@ var nextTick =(function () {
     var flushing = false;
     var requestTick = void 0;
     var isNodeJS = false;
+    var isIe = false;
     try {
         isIe = navigator && (navigator.appName === 'Microsoft Internet Explorer' || navigator.appVersion.match(/(trident).+rv[:\s]([\w\.]+).+like\sgecko/i) != null);
     } catch (e) {
