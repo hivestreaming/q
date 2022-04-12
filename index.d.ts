@@ -179,6 +179,22 @@ declare namespace Q {
 	export function timeout<T>(promise: Promise<T>, ms: number, message?: string): Promise<T>;
 
 	/**
+	 * Returns a promise that will be fulfilled with undefined after at least ms milliseconds have passed.
+	 */
+	 export function delay(ms: number): Promise<void>;
+
+	 /**
+	 * Synchronously calls resolver(resolve, reject, notify) and returns a promise whose state is controlled by the
+	 * functions passed to resolver. This is an alternative promise-creation API that has the same power as the deferred
+	 * concept, but without introducing another conceptual entity.
+	 * If resolver throws an exception, the returned promise will be rejected with that thrown exception as the rejection reason.
+	 * note: In the latest github, this method is called Q.Promise, but if you are using the npm package version 0.9.7
+	 * or below, the method is called Q.promise (lowercase vs uppercase p).
+	 */
+	export function Promise<T>(resolver: (resolve: (val?: IWhenable<T>) => void, reject: (reason?: any) => void) => void): Promise<T>;
+
+
+	/**
 	 * Resets the global "Q" variable to the value it has before Q was loaded.
 	 * This will either be undefined if there was no version or the version of Q which was already loaded before.
 	 * @returns The last version of Q.
