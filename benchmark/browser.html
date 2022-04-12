@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Jasmine Spec Runner</title>
+    <meta charset="utf-8" />
+
+    <!-- original Q promises -->
+    <script src="https://rawgit.com/kriskowal/q/v1/q.js"></script>
+
+    <!-- uncomment next line to use the update hive Q lib -->
+    <!-- <script src="../q.js"></script> -->
+
+
+    <script>
+    
+        var iterations = 1000;
+        var repetition = 10;
+
+        function makeCounter(desiredCount, completed) {
+            var soFar = 0;
+            return function () {
+                if (++soFar === desiredCount) {
+                    completed.resolve();
+                }
+            };
+        }
+        
+        function qBench() {
+            var completed = Q.defer();
+            var counter = makeCounter(iterations, completed);
+            
+            for (var i = 0; i < iterations; ++i) {
+                Q().then(counter);
+            }
+
+            return completed.promise;
+        }
+
+        function nativeBench() {
+            var completed = Q.defer();
+            var counter = makeCounter(iterations, completed);
+
+            
+            for (var i = 0; i < iterations; ++i) {
+                Promise.resolve().then(()=>{counter()})
+            }
+
+            return completed.promise;
+        }
+        
+        
+        async function performTest() {
+            let start = performance.now();
+            await qBench()
+            extendedLog('Q: ' + (performance.now() - start).toFixed(3) + ' ms')
+            
+            await sleep(500)
+            
+            start = performance.now();
+            await nativeBench();
+            extendedLog('N: ' + (performance.now() - start).toFixed(3) + ' ms')
+        }
+
+        async function sleep(ms) {
+            return new Promise(resolve => {setTimeout(()=>{resolve()}, ms)});
+        }
+
+        async function test() {
+
+            await sleep(500)
+            extendedLog(`promise/then performances between Q and Native (N)`)
+            extendedLog(`Number of iterations: ${iterations}`)
+            extendedLog(`Number of repetitions: ${repetition}`)
+            await sleep(500)
+
+            for (let i = 0; i < repetition; i++) {
+                performTest();
+                await sleep(1000)
+                extendedLog(' ');
+            }
+           
+        }
+
+        function extendedLog(text) {
+            document.getElementById('console').innerHTML += text + '<br>'
+            console.log(text)
+        }
+        
+        test();
+
+    </script>
+
+</head>
+<body>
+    <div id="console"></div>
+</body>
+</html>
