@@ -179,9 +179,14 @@ declare namespace Q {
 	export function timeout<T>(promise: Promise<T>, ms: number, message?: string): Promise<T>;
 
 	/**
+	 * Returns a promise that will have the same result as promise, but will only be fulfilled or rejected after at least ms milliseconds have passed.
+	 */
+	export function delay<T>(promiseOrValue: Promise<T> | T, ms: number): Promise<T>;
+
+	/**
 	 * Returns a promise that will be fulfilled with undefined after at least ms milliseconds have passed.
 	 */
-	 export function delay(ms: number): Promise<void>;
+	export function delay(ms: number): Promise<void>;
 
 	 /**
 	 * Synchronously calls resolver(resolve, reject, notify) and returns a promise whose state is controlled by the
