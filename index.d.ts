@@ -241,15 +241,15 @@ declare namespace Q {
 		/**
 		 * Returns a "state snapshot" object, which will be in one of three forms:
 		 *
-		 * - { state: "pending" }
-		 * - { state: "fulfilled", value: <fulfllment value> }
-		 * - { state: "rejected", reason: <rejection reason> }
+		 * - { status: "pending" }
+		 * - { status: "fulfilled", value: <fulfllment value> }
+		 * - { status: "rejected", reason: <rejection reason> }
 		 */
 		inspect(): PromiseState<T>;
 	}
 
 	export interface PromiseState<T> {
-		state: "fulfilled" | "rejected" | "pending";
+		status: "fulfilled" | "rejected" | "pending";
 		value?: T;
 		reason?: any;
 	}

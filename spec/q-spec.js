@@ -800,7 +800,7 @@ describe("inspect", function () {
 
     it("for a fulfilled promise", function () {
         expect(Q(10).inspect()).toEqual({
-            state: "fulfilled",
+            status: "fulfilled",
             value: 10
         });
     });
@@ -809,14 +809,14 @@ describe("inspect", function () {
         var error = new Error("In your face.");
         var rejected = Q.reject(error);
         expect(rejected.inspect()).toEqual({
-            state: "rejected",
+            status: "rejected",
             reason: error
         });
     });
 
     it("for a pending, unresolved promise", function () {
         var pending = Q.defer().promise;
-        expect(pending.inspect()).toEqual({ state: "pending" });
+        expect(pending.inspect()).toEqual({ status: "pending" });
     });
 
     it("for a promise resolved to a rejected promise", function () {
@@ -826,7 +826,7 @@ describe("inspect", function () {
         deferred.resolve(rejected);
 
         expect(deferred.promise.inspect()).toEqual({
-            state: "rejected",
+            status: "rejected",
             reason: error
         });
     });
@@ -837,7 +837,7 @@ describe("inspect", function () {
         deferred.resolve(fulfilled);
 
         expect(deferred.promise.inspect()).toEqual({
-            state: "fulfilled",
+            status: "fulfilled",
             value: 10
         });
     });
@@ -847,7 +847,7 @@ describe("inspect", function () {
         var b = Q.defer();
         a.resolve(b.promise);
 
-        expect(a.promise.inspect()).toEqual({ state: "pending" });
+        expect(a.promise.inspect()).toEqual({ status: "pending" });
     });
 
 });
@@ -1435,9 +1435,9 @@ describe("allSettled", function () {
         return Q.allSettled([1, Q(2), Q.reject(3)])
         .then(function (snapshots) {
             expect(snapshots).toEqual([
-                { state: "fulfilled", value: 1 },
-                { state: "fulfilled", value: 2 },
-                { state: "rejected", reason: 3 }
+                { status: "fulfilled", value: 1 },
+                { status: "fulfilled", value: 2 },
+                { status: "rejected", reason: 3 }
             ]);
         });
     });
@@ -1473,9 +1473,9 @@ describe("allSettled", function () {
         .then(function (snapshots) {
             expect(snapshots).not.toBe(input);
             expect(snapshots).toEqual([
-                { state: "fulfilled", value: 1 },
-                { state: "fulfilled", value: 2 },
-                { state: "rejected", reason: 3 }
+                { status: "fulfilled", value: 1 },
+                { status: "fulfilled", value: 2 },
+                { status: "rejected", reason: 3 }
             ]);
         });
     });
@@ -2266,7 +2266,7 @@ describe("thenables", function () {
             }}
         ])
         .then(function (snapshots) {
-            expect(snapshots).toEqual([{ state: "fulfilled", value: 10 }]);
+            expect(snapshots).toEqual([{ status: "fulfilled", value: 10 }]);
         });
     });
 
@@ -2279,7 +2279,7 @@ describe("thenables", function () {
             }}
         ])
         .then(function (snapshots) {
-            expect(snapshots).toEqual([{ state: "fulfilled", value: 10 }]);
+            expect(snapshots).toEqual([{ status: "fulfilled", value: 10 }]);
         });
     });
 
