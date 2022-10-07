@@ -79,6 +79,23 @@
 })(function () {
 "use strict";
 
+// utilities for timeouts working in HiveJS simulation
+function internalSetTimeout(cb, ms) {
+  if ((typeof Framework != "undefined") && Framework.isSimulated()) {
+      return Framework.setTimeout(cb, ms);
+  } else {
+      return setTimeout(cb, ms);
+  }
+}
+
+function internalClearTimeout(id) {
+  if ((typeof Framework != "undefined") && Framework.isSimulated()) {
+      return Framework.clearTimeout(id);
+  } else {
+      return clearTimeout(id);
+  }
+}
+
 var hasStacks = false;
 try {
     throw new Error();
@@ -154,7 +171,7 @@ var nextTick =(function () {
                 if (domain) {
                     domain.exit();
                 }
-                setTimeout(flush, 0);
+                internalSetTimeout(flush, 0);
                 if (domain) {
                     domain.enter();
                 }
@@ -164,7 +181,7 @@ var nextTick =(function () {
             } else {
                 // In browsers, uncaught exceptions are not fatal.
                 // Re-throw them asynchronously to avoid slow-downs.
-                setTimeout(function () {
+                internalSetTimeout(function () {
                     throw e;
                 }, 0);
             }
@@ -176,20 +193,17 @@ var nextTick =(function () {
     }
 
     nextTick = function (task) {
-        if ((typeof Framework != "undefined") && Framework.isSimulated()) {
-            Framework.setTimeout(task, 0);
-        } else {
-            tail = tail.next = {
-                task: task,
-                domain: isNodeJS && process.domain,
-                next: null
-            };
+        tail = tail.next = {
+            task: task,
+            domain: isNodeJS && process.domain,
+            next: null
+        };
 
-            if (!flushing) {
-                flushing = true;
-                requestTick();
-            }
+        if (!flushing) {
+            flushing = true;
+            requestTick();
         }
+    
     };
 
     if (typeof process === "object" && process &&
@@ -235,14 +249,14 @@ var nextTick =(function () {
             channel.port2.postMessage(0);
         };
         requestTick = function () {
-            setTimeout(flush, 0);
+            internalSetTimeout(flush, 0);
             requestPortTick();
         };
 
     } else {
         // old browsers
         requestTick = function () {
-            setTimeout(flush, 0);
+            internalSetTimeout(flush, 0);
         };
     }
     // runs a task after all other tasks have been run
@@ -597,7 +611,7 @@ function defer() {
 
     promise.inspect = function () {
         if (!resolvedPromise) {
-            return { state: "pending" };
+            return { status: "pending" };
         }
         return resolvedPromise.inspect();
     };
@@ -806,7 +820,7 @@ function Promise(descriptor, fallback, inspect) {
     }
     if (inspect === void 0) {
         inspect = function () {
-            return {state: "unknown"};
+            return {status: "unknown"};
         };
     }
 
@@ -833,14 +847,14 @@ function Promise(descriptor, fallback, inspect) {
     // XXX deprecated `valueOf` and `exception` support
     if (inspect) {
         var inspected = inspect();
-        if (inspected.state === "rejected") {
+        if (inspected.status === "rejected") {
             promise.exception = inspected.reason;
         }
 
         promise.valueOf = function () {
             var inspected = inspect();
-            if (inspected.state === "pending" ||
-                inspected.state === "rejected") {
+            if (inspected.status === "pending" ||
+                inspected.status === "rejected") {
                 return promise;
             }
             return inspected.value;
@@ -1001,7 +1015,7 @@ Q.nearer = nearer;
 function nearer(value) {
     if (isPromise(value)) {
         var inspected = value.inspect();
-        if (inspected.state === "fulfilled") {
+        if (inspected.status === "fulfilled") {
             return inspected.value;
         }
     }
@@ -1028,11 +1042,11 @@ function isPromiseAlike(object) {
  */
 Q.isPending = isPending;
 function isPending(object) {
-    return isPromise(object) && object.inspect().state === "pending";
+    return isPromise(object) && object.inspect().status === "pending";
 }
 
 Promise.prototype.isPending = function () {
-    return this.inspect().state === "pending";
+    return this.inspect().status === "pending";
 };
 
 /**
@@ -1041,11 +1055,11 @@ Promise.prototype.isPending = function () {
  */
 Q.isFulfilled = isFulfilled;
 function isFulfilled(object) {
-    return !isPromise(object) || object.inspect().state === "fulfilled";
+    return !isPromise(object) || object.inspect().status === "fulfilled";
 }
 
 Promise.prototype.isFulfilled = function () {
-    return this.inspect().state === "fulfilled";
+    return this.inspect().status === "fulfilled";
 };
 
 /**
@@ -1053,11 +1067,11 @@ Promise.prototype.isFulfilled = function () {
  */
 Q.isRejected = isRejected;
 function isRejected(object) {
-    return isPromise(object) && object.inspect().state === "rejected";
+    return isPromise(object) && object.inspect().status === "rejected";
 }
 
 Promise.prototype.isRejected = function () {
-    return this.inspect().state === "rejected";
+    return this.inspect().status === "rejected";
 };
 
 //// BEGIN UNHANDLED REJECTION TRACKING
@@ -1155,7 +1169,7 @@ function reject(reason) {
     }, function fallback() {
         return this;
     }, function inspect() {
-        return { state: "rejected", reason: reason };
+        return { status: "rejected", reason: reason };
     });
 
     // Note that the reason has not been handled.
@@ -1199,7 +1213,7 @@ function fulfill(value) {
             return object_keys(value);
         }
     }, void 0, function inspect() {
-        return { state: "fulfilled", value: value };
+        return { status: "fulfilled", value: value };
     });
 }
 
@@ -1597,7 +1611,7 @@ function all(promises) {
             var snapshot;
             if (
                 isPromise(promise) &&
-                (snapshot = promise.inspect()).state === "fulfilled"
+                (snapshot = promise.inspect()).status === "fulfilled"
             ) {
                 promises[index] = snapshot.value;
             } else {
@@ -1717,7 +1731,7 @@ function allSettled(promises) {
  * returned by `inspect`) when they have all settled.
  * @param {Array[Any*]} values an array (or promise for an array) of values (or
  * promises for values)
- * @returns {Array[State]} an array of states for the respective values.
+ * @returns {Array[status]} an array of states for the respective values.
  */
 Promise.prototype.allSettled = function () {
     return this.then(function (promises) {
@@ -1852,7 +1866,7 @@ Q.timeout = function (object, ms, error) {
 
 Promise.prototype.timeout = function (ms, error) {
     var deferred = defer();
-    var timeoutId = setTimeout(function () {
+    var timeoutId = internalSetTimeout(function () {
         if (!error || "string" === typeof error) {
             error = new Error(error || "Timed out after " + ms + " ms");
             error.code = "ETIMEDOUT";
@@ -1861,10 +1875,10 @@ Promise.prototype.timeout = function (ms, error) {
     }, ms);
 
     this.then(function (value) {
-        clearTimeout(timeoutId);
+        internalClearTimeout(timeoutId);
         deferred.resolve(value);
     }, function (exception) {
-        clearTimeout(timeoutId);
+        internalClearTimeout(timeoutId);
         deferred.reject(exception);
     }, deferred.notify);
 
@@ -1891,7 +1905,7 @@ Q.delay = function (object, timeout) {
 Promise.prototype.delay = function (timeout) {
     return this.then(function (value) {
         var deferred = defer();
-        setTimeout(function () {
+        internalSetTimeout(function () {
             deferred.resolve(value);
         }, timeout);
         return deferred.promise;

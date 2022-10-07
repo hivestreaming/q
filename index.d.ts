@@ -241,15 +241,15 @@ declare namespace Q {
 		/**
 		 * Returns a "state snapshot" object, which will be in one of three forms:
 		 *
-		 * - { state: "pending" }
-		 * - { state: "fulfilled", value: <fulfllment value> }
-		 * - { state: "rejected", reason: <rejection reason> }
+		 * - { status: "pending" }
+		 * - { status: "fulfilled", value: <fulfllment value> }
+		 * - { status: "rejected", reason: <rejection reason> }
 		 */
 		inspect(): PromiseState<T>;
 	}
 
 	export interface PromiseState<T> {
-		state: "fulfilled" | "rejected" | "pending";
+		status: "fulfilled" | "rejected" | "pending";
 		value?: T;
 		reason?: any;
 	}
@@ -475,6 +475,11 @@ declare namespace Q {
 	 * Returns a promise that is fulfilled with an array containing the fulfillment value of each promise, or is rejected with the same rejection reason as the first promise to be rejected.
 	 */
 	export function all<T>(promises: IWhenable<Array<IWhenable<T>>>): Promise<T[]>;
+
+	/**
+	 * Returns the first resolved promise of an array. Prior rejected promises are ignored. Rejects only if all promises are rejected.
+	 */
+	export function any<T>(promises: IWhenable<Array<IWhenable<T>>>): Promise<T>;
 
 	/**
 	 * Returns a promise for the first of an array of promises to become settled.
