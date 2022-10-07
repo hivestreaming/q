@@ -477,6 +477,11 @@ declare namespace Q {
 	export function all<T>(promises: IWhenable<Array<IWhenable<T>>>): Promise<T[]>;
 
 	/**
+	 * Returns the first resolved promise of an array. Prior rejected promises are ignored. Rejects only if all promises are rejected.
+	 */
+	export function any<T>(promises: IWhenable<Array<IWhenable<T>>>): Promise<T>;
+
+	/**
 	 * Returns a promise for the first of an array of promises to become settled.
 	 */
 	export function race<T>(promises: Array<IWhenable<T>>): Promise<T>;
